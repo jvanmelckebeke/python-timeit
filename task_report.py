@@ -1,10 +1,12 @@
 from typing import Union
 
+from utils import constants
+from utils.misc import reformat_units, format_percentage
+
+PADDING_SECONDS = len("seconds")
+
 
 class TaskReport:
-    SEPERATOR = " ; "
-    PREFIX = ""
-
     def __init__(self,
                  name: str,
                  times: Union[list[float], float],
@@ -21,6 +23,7 @@ class TaskReport:
         self.internal_time = None
 
         self.padding_name = padding_name
+        self.unit_padding = PADDING_SECONDS
 
     @property
     def avg_duration(self):
@@ -30,35 +33,41 @@ class TaskReport:
     def total_duration(self):
         return sum(self.times)
 
-    def print(self, prefix="", spacing=0, skip_first=False):
+    @property
+    def formatted_duration(self):
+        return reformat_units(self.total_duration)
+
+    def print(self, prefix="", spacing=0, skip_first=False, unit_padding=PADDING_SECONDS):
+        self.unit_padding = unit_padding
+
         if not skip_first:
             print(self.__str__())
 
         if self.children:
+            child_unit_padding = max([len(child.formatted_duration[1]) for child in self.children])
+
             for i, child in enumerate(self.children):
                 if i == len(self.children) - 1 or len(child.children) > 1:
                     print(" " * spacing + f"└── {child}")
                     if child.children:
-                        child.print(prefix=prefix + " ", spacing=spacing + 4, skip_first=True)
+                        child.print(prefix=prefix + " ", spacing=spacing + 4, skip_first=True,
+                                    unit_padding=child_unit_padding)
                 else:
                     print(" " * spacing + f"├── {child}")
                     if child.children:
-                        child.print(prefix=prefix + "│", spacing=spacing + 4, skip_first=True)
+                        child.print(prefix=prefix + "│", spacing=spacing + 4, skip_first=True,
+                                    unit_padding=child_unit_padding)
 
         if self.internal_time is not None:
             internal_time = self.internal_time
             internal_time_ratio = self.internal_time / self.total_duration
 
             # change unit to ms if internal time is too small, if still too small, change to us
-            unit = "seconds"
-            if internal_time < 0.00001:
-                internal_time *= 1000000
-                unit = "microseconds"
-            elif internal_time < 0.01:
-                internal_time *= 1000
-                unit = "milliseconds"
+            internal_time, unit = reformat_units(internal_time, start_unit="seconds")
 
-            print(" " * spacing + f"└── [{internal_time_ratio:.2%}%] internal time: {internal_time:.5f} {unit}")
+            print(" " * spacing + f"└── {format_percentage(internal_time_ratio)} "
+                                  f"internal time: {internal_time:{constants.DURATION_FORMAT}} {unit}")
+
     @classmethod
     def from_dict(cls, task_report_dict: dict, padding_name=0):
         padding_children = 0
@@ -78,20 +87,23 @@ class TaskReport:
         )
 
     def __str__(self):
-
+        ratio_str = f"{format_percentage(self.ratio)} " if self.ratio < 1 else ""
         name_str = f"{self.name:{self.padding_name}}" if self.padding_name > 0 else self.name
 
+        count_str = f"{self.count} times" if self.count > 1 else ""
+        avg_duration_str = f"avg {self.avg_duration:{constants.DURATION_FORMAT}} seconds" if self.count > 1 else ""
+
         to_print = [
-            f"[{self.ratio:.2%}%] {name_str}",
-            f"{self.total_duration:6.5f} seconds",
-            f"{self.count} times",
-            f"avg {self.avg_duration:6.5f} seconds"
+            constants.PREFIX,
+            f"{ratio_str}{name_str}",
+            f"{self.formatted_duration[0]:{constants.DURATION_FORMAT}} {self.formatted_duration[1]:{self.unit_padding}}",
+            f"{count_str}",
+            f"{avg_duration_str}"
         ]
 
-        if self.PREFIX != "":
-            to_print.insert(0, self.PREFIX)
+        to_print = [x for x in to_print if x != ""]
 
-        return TaskReport.SEPERATOR.join(to_print)
+        return constants.SEPERATOR.join(to_print)
 
     def __repr__(self):
         return self.__str__()

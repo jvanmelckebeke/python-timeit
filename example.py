@@ -1,43 +1,89 @@
+import random
 from time import sleep
 
 from timeit import TimeIt
 
-if __name__ == '__main__':
+BASE_TIME = 0.01
 
-    BASE_TIME = 0.1
-    # random example script to test the timeit functionallity
 
-    with TimeIt("my timer") as timer:
-        print("executing my timer....")
-        sleep(BASE_TIME)
-        with timer("my subtimer"):
-            print("executing my subtimer....")
-            sleep(BASE_TIME)
+# Function to simulate some computational task
+def compute_task():
+    amount = random.randint(1000, 5000)
+    for i in range(amount):
+        result = i * 2
 
-            with timer("my nested subtimer"):
-                print("executing my nested subtimer....")
-                sleep(BASE_TIME)
 
-                for _ in range(2):
-                    with timer("my super nested subtimer 2"):
-                        sleep(BASE_TIME)
+execution_map = {
+    "task 1": {
+        "count": 5,
+        "children": {
+            "task 1.1": {
+                "count": 3,
+                "children": {
+                    "task 1.1.1": {
+                        "count": 2,
+                        "children": {}
+                    },
+                    "task 1.1.2": {
+                        "count": 2,
+                        "children": {}
+                    }
+                }
+            }
+        }
+    },
+    "task 2": {
+        "count": 5,
+        "children": {
+            "task 2.1": {
+                "count": 3,
+                "children": {
+                    "task 2.1.1": {
+                        "count": 2,
+                        "children": {}
+                    },
+                    "task 2.1.2": {
+                        "count": 2,
+                        "children": {}
+                    },
+                    "task 2.1.3": {
+                        "count": 2,
+                        "children": {}
+                    }
+                },
+            },
 
-            for _ in range(5):
-                with timer("my nested subtimer 2"):
-                    sleep(BASE_TIME)
-        with timer("my subtimer 992"):
-            print("executing my subtimer 2....")
-            sleep(BASE_TIME)
-            #
-            #     with timer("my subtimer 3"):
-            #         sleep(BASE_TIME)
-            #
-            # for _ in range(50):
-            #     sleep(BASE_TIME)
-            #     # uncovered time
+            "task 2.2": {
+                "count": 3,
+                "children": {
+                    "task 2.2.1": {
+                        "count": 9,
+                        "children": {}
+                    },
+                    "task 2.2.2": {
+                        "count": 1,
+                        "children": {}
+                    },
+                    "task 2.2.3": {
+                        "count": 2,
+                        "children": {}
+                    }
+                },
+            }
+        }
+    }
+}
 
-        with timer("my subtimer 4"):
-            print("executing my subtimer 4....")
-            sleep(BASE_TIME)
-        # something that is not covered by the timer
-        sleep(BASE_TIME*2)
+with TimeIt("my simple timer") as timer1:
+    compute_task()
+with TimeIt("my timer") as timer:
+    def execute_task(task_name, task_count, children):
+        for _ in range(task_count):
+            with timer(task_name):
+                compute_task()
+                for child_name, child in children.items():
+                    execute_task(child_name, child["count"], child["children"])
+
+
+    for task_name, task in execution_map.items():
+        execute_task(task_name, task["count"], task["children"])

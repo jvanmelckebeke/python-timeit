@@ -13,12 +13,12 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, see <https://www.gnu.org/licenses/>.
 #
-import json
 import time
 from distutils.util import strtobool
 import os
 
 from task_report import TaskReport
+from utils.misc import random_task_name, reformat_units, time_to_str
 
 
 class InternalTimer:
@@ -142,14 +142,16 @@ class TimeIt:
             task_report.print(spacing=spacing, skip_first=True)
 
         elapsed_time = self.elapsed_time
-        if len(self.timer.task_timers) < 2:
-            # __INTERNAL is a mandatory element
-            print(f"[TIMEIT] {self.name} took {elapsed_time:.5f} seconds")
+
+        generate_report_start = time.time()
+
+        if len(self.timer.task_timers) < 1:
+            print(f"[TIMEIT] {self.name} took {time_to_str(elapsed_time)}")
             return
 
         print_report_title_line()
 
-        print(f"{self.name} took {elapsed_time:.5f} seconds")
+        print(f"[TIMEIT] {self.name} took {time_to_str(elapsed_time)}")
 
         report = generate_task_report_dict(self.timer.task_timers)
 
@@ -157,53 +159,26 @@ class TimeIt:
 
         # print coverage stats
 
-        print_report_title_line()
+        time_accounted_for = 0
+        total_time = elapsed_time + self.internal_timer.internal_time
 
-        # self.subtimers = self.timer.subtimers
-        #
-        # if len(self.subtimers) < 2:
-        #     # __INTERNAL is a mandatory element
-        #     print(f"[TIMEIT] {self.name} took {elapsed_time:.5f} seconds")
-        #     return
-        #
-        # print_report_title_line()
-        #
-        # print(f"{self.name} took {elapsed_time:.5f} seconds")
-        # print("subtimers", self.subtimers)
-        #
-        # max_chars_name = max(len(x) for x in self.subtimers.keys())
-        #
-        # # this is a dirty hack to get the max count of subtimers, and know how many times it is run
-        # max_calls = len(str(max(len(x) for x in self.subtimers.values())))
-        #
-        # time_accounted_for = 0
-        #
-        # for subtimer_name, subtimer_times in self.subtimers.items():
-        #     total_time = sum(subtimer_times)
-        #     num_calls = len(subtimer_times)
-        #     avg_time = total_time / num_calls
-        #     ratio_total_time = total_time / elapsed_time * 100
-        #
-        #     time_accounted_for += total_time
-        #
-        #     print(
-        #         f"- {subtimer_name:{max_chars_name + 1}} "
-        #         f"avg {avg_time:.5f} seconds{SP};"
-        #         f"{SP}{num_calls:{max_calls}} calls{SP};{SP}"
-        #         f"total time: {total_time:.5f} seconds{SP};"
-        #         f"{SP}{ratio_total_time:5.2f}% of total time"
-        #     )
-        #
-        # time_unaccounted_for = elapsed_time - time_accounted_for
-        # coverage_ratio = time_accounted_for / elapsed_time * 100
-        #
-        # print(
-        #     f"[{coverage_ratio:5.2f}% TIME COVERAGE]{SP}"
-        #     f"time accounted for: {time_accounted_for:.5f} seconds{SP};{SP}"
-        #     f"time unaccounted for: {time_unaccounted_for:.5f} seconds"
-        # )
-        #
-        # print_report_title_line()
+        for task in report.values():
+            time_accounted_for += sum(task["times"])
+
+        coverage = time_accounted_for / total_time
+        time_unaccounted_for = total_time - time_accounted_for
+        print(
+            f"[{coverage:.2%}% COVERAGE] time accounted for: {time_to_str(time_accounted_for)}, "
+            f"time unaccounted for: {time_to_str(time_unaccounted_for)}")
+
+        generate_report_end = time.time()
+        generate_report_duration = generate_report_end - generate_report_start
+
+        duration, unit = reformat_units(generate_report_duration)
+
+        print(f"[TIMEIT] report generation took {time_to_str(generate_report_duration)}")
+
+        print_report_title_line()
 
     class __Timer:
         def __init__(self, name, internal_timer: InternalTimer, parent_timer=None):
@@ -222,7 +197,10 @@ class TimeIt:
 
             self.report_object = {}
 
-        def __call__(self, name, *args, **kwargs):
+        def __call__(self, name=None, *args, **kwargs):
+            if name is None:
+                name = random_task_name()
+
             with self.internal_timer:
                 # oh boy this looks ugly
                 if self.current_task is not None:
@@ -274,13 +252,3 @@ class TimeIt:
 
         def __str__(self):
             return f"Timer(name=[{self.name}], tasks={self.task_timers}, current_task=[{self.current_task}])"
-
-        # def register_time(self, name, elapsed_time):
-        #     with self.internal_timer:
-        #         if name not in self.subtimers:
-        #             self.subtimers[name] = []
-        #
-        #         self.subtimers[name].append({
-        #             'name': name,
-        #             'elapsed_time': elapsed_time
-        #         })
