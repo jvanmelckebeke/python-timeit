@@ -1,7 +1,7 @@
 from typing import Union
 
 from utils import constants
-from utils.misc import reformat_units, format_percentage
+from utils.misc import reformat_units, format_percentage, time_to_str
 
 PADDING_SECONDS = len("seconds")
 
@@ -24,6 +24,7 @@ class TaskReport:
 
         self.padding_name = padding_name
         self.unit_padding = PADDING_SECONDS
+        self.avg_duration_padding = len(self.formatted_avg_duration)
 
     @property
     def avg_duration(self):
@@ -37,26 +38,32 @@ class TaskReport:
     def formatted_duration(self):
         return reformat_units(self.total_duration)
 
-    def print(self, prefix="", spacing=0, skip_first=False, unit_padding=PADDING_SECONDS):
+    @property
+    def formatted_avg_duration(self):
+        return time_to_str(self.avg_duration)
+
+    def print(self, prefix="", spacing=0, skip_first=False, unit_padding=PADDING_SECONDS, avg_duration_padding=0):
         self.unit_padding = unit_padding
+        self.avg_duration_padding = avg_duration_padding
 
         if not skip_first:
             print(self.__str__())
 
         if self.children:
             child_unit_padding = max([len(child.formatted_duration[1]) for child in self.children])
+            child_avg_duration_padding = max([len(child.formatted_avg_duration) for child in self.children])
 
             for i, child in enumerate(self.children):
                 if i == len(self.children) - 1 or len(child.children) > 1:
                     print(" " * spacing + f"└── {child}")
                     if child.children:
                         child.print(prefix=prefix + " ", spacing=spacing + 4, skip_first=True,
-                                    unit_padding=child_unit_padding)
+                                    unit_padding=child_unit_padding, avg_duration_padding=child_avg_duration_padding)
                 else:
                     print(" " * spacing + f"├── {child}")
                     if child.children:
                         child.print(prefix=prefix + "│", spacing=spacing + 4, skip_first=True,
-                                    unit_padding=child_unit_padding)
+                                    unit_padding=child_unit_padding, avg_duration_padding=child_avg_duration_padding)
 
         if self.internal_time is not None:
             internal_time = self.internal_time
@@ -91,7 +98,7 @@ class TaskReport:
         name_str = f"{self.name:{self.padding_name}}" if self.padding_name > 0 else self.name
 
         count_str = f"{self.count} times" if self.count > 1 else ""
-        avg_duration_str = f"avg {self.avg_duration:{constants.DURATION_FORMAT}} seconds" if self.count > 1 else ""
+        avg_duration_str = f"avg {time_to_str(self.avg_duration):{self.avg_duration_padding}}" if self.count > 1 else ""
 
         to_print = [
             constants.PREFIX,
