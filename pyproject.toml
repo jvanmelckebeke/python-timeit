@@ -1,6 +1,6 @@
 [tool.poetry]
-name = "timeit"
-version = "0.1.0"
+name = "timeitpoj"
+version = "0.1.2"
 description = ""
 authors = ["Jari Van Melckebeke <jarivanmelckebeke@gmail.com>"]
 readme = "README.md"

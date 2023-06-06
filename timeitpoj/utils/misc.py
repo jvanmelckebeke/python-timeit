@@ -1,6 +1,6 @@
 import random
 
-from utils import constants
+from timeitpoj.utils import constants
 
 
 def reformat_units(value: float, start_unit="seconds"):

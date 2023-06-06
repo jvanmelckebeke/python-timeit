@@ -1,7 +1,7 @@
 from typing import Union
 
-from utils import constants
-from utils.misc import reformat_units, format_percentage, time_to_str
+from timeitpoj.utils import constants
+from timeitpoj.utils.misc import reformat_units, format_percentage, time_to_str
 
 PADDING_SECONDS = len("seconds")
 

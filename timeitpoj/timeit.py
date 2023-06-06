@@ -16,9 +16,10 @@
 import time
 from distutils.util import strtobool
 import os
+from functools import wraps
 
-from task_report import TaskReport
-from utils.misc import random_task_name, reformat_units, time_to_str
+from timeitpoj.task_report import TaskReport
+from timeitpoj.utils.misc import random_task_name, reformat_units, time_to_str
 
 
 class InternalTimer:
@@ -180,6 +181,24 @@ class TimeIt:
 
         print_report_title_line()
 
+    @classmethod
+    def as_decorator(cls, name=None, include=False):
+        def decorator(func):
+            @wraps(func)
+            def wrapper(*args, **kwargs):
+                nonlocal name
+                if name is None:
+                    name = func.__name__
+                with cls(name) as timer:
+                    if include:
+                        return func(*args, timer=timer, **kwargs)
+                    else:
+                        return func(*args, **kwargs)
+
+            return wrapper
+
+        return decorator
+
     class __Timer:
         def __init__(self, name, internal_timer: InternalTimer, parent_timer=None):
             self.internal_timer = internal_timer
@@ -246,6 +265,23 @@ class TimeIt:
         def register_task_end(self, task_report):
             self.current_task = None
             self.task_timers.append(task_report)
+
+        def function(self, name=None, include=False):
+            def decorator(func):
+                @wraps(func)
+                def wrapper(*args, **kwargs):
+                    nonlocal name
+                    if name is None:
+                        name = func.__name__
+                    with self(name) as timer:
+                        if include:
+                            return func(*args, timer=timer, **kwargs)
+                        else:
+                            return func(*args, **kwargs)
+
+                return wrapper
+
+            return decorator
 
         def __repr__(self):
             return self.__str__()
