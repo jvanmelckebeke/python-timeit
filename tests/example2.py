@@ -1,6 +1,6 @@
 import random
 
-from timeit import TimeIt
+from timeitpoj.timeit import TimeIt
 
 BASE_TIME = 0.01
 
