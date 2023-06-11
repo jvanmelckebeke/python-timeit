@@ -20,6 +20,7 @@ from functools import wraps
 
 from timeitpoj.timer.internal_timer import InternalTimer
 from timeitpoj.task_report import TaskReport
+from timeitpoj.timer.timer import Timer
 from timeitpoj.utils.misc import reformat_units, time_to_str
 
 
@@ -57,7 +58,7 @@ class TimeIt:
         with self.internal_timer:
             self.start_time = time.time()
             if self.timer is None:
-                self.timer = self.Timer(self.name, self.internal_timer, None)
+                self.timer = Timer(self.name, self.internal_timer, None)
             return self.timer.__enter__()
 
     def __exit__(self, exc_type, exc_val, exc_tb):
@@ -71,7 +72,7 @@ class TimeIt:
 
     def __call__(self, name, *args, **kwargs):
         if self.timer is None:
-            self.timer = self.Timer(name, self.internal_timer, None)
+            self.timer = Timer(name, self.internal_timer, None)
 
         return self.timer(name)
 

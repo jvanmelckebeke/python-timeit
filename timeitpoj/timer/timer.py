@@ -58,12 +58,15 @@ class Timer:
 
         elapsed_time = self.end_time - self.start_time
 
-        self.elapsed_time = elapsed_time
         self.report_object = {
             "name": self.name,
             "elapsed_time": elapsed_time,
             "task_timers": self.task_timers
         }
+
+    @property
+    def elapsed_time(self):
+        return self.end_time - self.start_time if self.end_time is not None else None
 
     def start_timer(self):
         self.start_time = time.time()
