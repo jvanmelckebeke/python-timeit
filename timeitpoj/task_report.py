@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Union, List
 
 from timeitpoj.utils import constants
 from timeitpoj.utils.misc import reformat_units, format_percentage, time_to_str
@@ -9,10 +9,10 @@ PADDING_SECONDS = len("seconds")
 class TaskReport:
     def __init__(self,
                  name: str,
-                 times: Union[list[float], float],
+                 times: Union[List[float], float],
                  count: int,
                  ratio: float,
-                 children: list["TaskReport"],
+                 children: List["TaskReport"],
                  padding_name: int):
         self.name = name
         self.times = times if isinstance(times, list) else [times]
