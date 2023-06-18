@@ -25,9 +25,6 @@ jobs:
 
       - name: Set up Poetry
         uses: abatilo/actions-poetry@v2
-        with:
-          python-version: ${{ matrix.python-version }}
-          virtualenvs-path: .venv
 
       - name: Install dependencies
         run: |
