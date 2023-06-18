@@ -1,0 +1,7 @@
+dist/
+.idea/
+*.iml
+*.iws
+
+.gitignore
+.dockerignore

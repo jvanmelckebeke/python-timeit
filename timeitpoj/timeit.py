@@ -38,7 +38,7 @@ class TimeIt:
 
 
     or as a decorator:
-    @TimeIt.as_decorator("my timer")
+    @TimeIt.as_decorator("my timer", include=True)
     def my_function(*args, timer, **kwargs):
         # do stuff
 
