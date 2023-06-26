@@ -5,6 +5,16 @@ from timeitpoj.utils.misc import reformat_units, format_percentage, time_to_str
 
 PADDING_SECONDS = len("seconds")
 
+class Report:
+    def __init__(self, name, times, count, ratio, children):
+        self.name = name
+        self.times = times if isinstance(times, list) else [times]
+        self.count = count
+        self.ratio = ratio
+        self.children = children
+
+        self.internal_time = None
+        pass
 
 class TaskReport:
     def __init__(self,

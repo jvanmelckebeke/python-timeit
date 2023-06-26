@@ -18,10 +18,10 @@ from distutils.util import strtobool
 import os
 from functools import wraps
 
+from timeitpoj.reporting.events.print_report_action import PrintReportHandler
+from timeitpoj.reporting.timeit_event import TimeitEvent
 from timeitpoj.timer.internal_timer import InternalTimer
-from timeitpoj.task_report import TaskReport
 from timeitpoj.timer.timer import Timer
-from timeitpoj.utils.misc import reformat_units, time_to_str
 
 
 class TimeIt:
@@ -44,7 +44,12 @@ class TimeIt:
 
     """
 
-    def __init__(self, name: str):
+    def __init__(self, name: str, handlers: list[TimeitEvent] = None):
+        """
+        creates a new TimeIt object
+        the TimeIt object is a manager for the root timer
+        :param name: the name of the timer (used for reporting)
+        """
         self.internal_timer = InternalTimer()
         self.timer = None
         with self.internal_timer:
@@ -52,115 +57,75 @@ class TimeIt:
             self.start_time = None
             self.end_time = None
 
+            if handlers is None:
+                handlers = [PrintReportHandler()]
+
+            self.handlers = handlers
+
             self.active = bool(strtobool(os.getenv("TIME_IT", "true")))
 
+            if not self.active:
+                print("TimeIt is disabled, no reports will be printed")
+
+    def handle_start(self):
+        """
+        handles the start of the root timer
+        """
+        for handler in self.handlers:
+            handler.on_start(self)
+
+    def handle_end(self):
+        """
+        handles the end of the root timer
+        """
+        for handler in self.handlers:
+            handler.on_end(self)
+
     def __enter__(self):
+        """
+        when entering the context manager, the root timer is started
+        """
         with self.internal_timer:
             self.start_time = time.time()
             if self.timer is None:
                 self.timer = Timer(self.name, self.internal_timer, None)
+                self.handle_start()
             return self.timer.__enter__()
 
     def __exit__(self, exc_type, exc_val, exc_tb):
+        """
+        when exiting the context manager, the root timer is stopped and a report is printed
+        note: currently printing the report happens always (unless TIME_IT is set to false), however,
+        this is planned to be changed in the future
+        :param exc_type:
+        :param exc_val:
+        :param exc_tb:
+        :return:
+        """
         self.end_time = time.time()
-        self.__print_timeit_report()
-        pass
-
-    @property
-    def elapsed_time(self):
-        return self.end_time - self.start_time if self.end_time is not None else None
+        if self.active:
+            self.handle_end()
 
     def __call__(self, name, *args, **kwargs):
+        """
+        when calling the TimeIt object, a new task is created within the current running timer
+        :param name: the name of the (sub)task that is being timed
+        :param args:
+        :param kwargs:
+        :return:
+        """
         if self.timer is None:
             self.timer = Timer(name, self.internal_timer, None)
 
         return self.timer(name)
 
-    def __print_timeit_report(self):
-        def print_report_title_line():
-            print(f"================= [{self.name}] TIMEIT REPORT =================")
-
-        def generate_task_report_dict(tasks):
-
-            report = {}
-
-            for task_timer in tasks:
-                task_name = task_timer["name"]
-
-                if task_name in report:
-                    report[task_name]["count"] += 1
-                    report[task_name]["times"].append(task_timer["elapsed_time"])
-                    report[task_name]["avg"] = sum(report[task_name]["times"]) / report[task_name]["count"]
-                else:
-                    report[task_name] = {
-                        "name": task_name,
-                        "count": 1,
-                        "times": [task_timer["elapsed_time"]],
-                        "ratio": 0,
-                        "avg": task_timer["elapsed_time"],
-                    }
-
-                if len(task_timer["task_timers"]) > 0:
-                    report[task_name]["subtasks"] = generate_task_report_dict(task_timer["task_timers"])
-            total_time = sum([sum(task["times"]) for task in report.values()])
-
-            for task in report.values():
-                task["ratio"] = sum(task["times"]) / total_time
-
-            return report
-
-        def print_report(_report, spacing=0):
-            task_report = TaskReport.from_dict(
-                {
-                    "name": self.name,
-                    "count": 1,
-                    "times": [self.elapsed_time],
-                    "ratio": 0,
-                    "avg": self.elapsed_time,
-                    "subtasks": _report,
-                }
-            )
-            task_report.internal_time = self.internal_timer.internal_time
-            task_report.print(spacing=spacing, skip_first=True)
-
-        elapsed_time = self.elapsed_time
-
-        generate_report_start = time.time()
-
-        if len(self.timer.task_timers) < 1:
-            print(f"[TIMEIT] {self.name} took {time_to_str(elapsed_time)}")
-            return
-
-        print_report_title_line()
-
-        print(f"[TIMEIT] {self.name} took {time_to_str(elapsed_time)}")
-
-        report = generate_task_report_dict(self.timer.task_timers)
-
-        print_report(report, spacing=0)
-
-        # print coverage stats
-
-        time_accounted_for = 0
-        total_time = elapsed_time + self.internal_timer.internal_time
-
-        for task in report.values():
-            time_accounted_for += sum(task["times"])
-
-        coverage = time_accounted_for / total_time
-        time_unaccounted_for = total_time - time_accounted_for
-        print(
-            f"[{coverage:.2%}% COVERAGE] time accounted for: {time_to_str(time_accounted_for)}, "
-            f"time unaccounted for: {time_to_str(time_unaccounted_for)}")
-
-        generate_report_end = time.time()
-        generate_report_duration = generate_report_end - generate_report_start
-
-        duration, unit = reformat_units(generate_report_duration)
-
-        print(f"[TIMEIT] report generation took {time_to_str(generate_report_duration)}")
-
-        print_report_title_line()
+    @property
+    def elapsed_time(self):
+        """
+        the elapsed time of the root timer
+        :return:
+        """
+        return self.end_time - self.start_time if self.end_time is not None else None
 
     @classmethod
     def as_decorator(cls, name=None, include=False):
@@ -179,4 +144,3 @@ class TimeIt:
             return wrapper
 
         return decorator
-
