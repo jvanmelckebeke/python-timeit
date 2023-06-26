@@ -17,6 +17,7 @@ import time
 from distutils.util import strtobool
 import os
 from functools import wraps
+from typing import List
 
 from timeitpoj.reporting.events.print_report_action import PrintReportHandler
 from timeitpoj.reporting.timeit_event import TimeitEvent
@@ -44,7 +45,7 @@ class TimeIt:
 
     """
 
-    def __init__(self, name: str, handlers: list[TimeitEvent] = None):
+    def __init__(self, name: str, handlers: List[TimeitEvent] = None):
         """
         creates a new TimeIt object
         the TimeIt object is a manager for the root timer

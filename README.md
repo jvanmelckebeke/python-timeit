@@ -2,6 +2,8 @@
 
 yet another random library for measuring python performance
 
+[![Build and Test](https://github.com/jvanmelckebeke/timeitpoj/actions/workflows/run-tests.yaml/badge.svg)](https://github.com/jvanmelckebeke/timeitpoj/actions/workflows/run-tests.yaml)
+
 ## Usage in production
 
 if you do not need to measure performance of your code in a production environment, simply set the environment
