@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "timeitpoj"
-version = "0.1.7"
+version = "0.1.8"
 description = "yet another random library for measuring python performance"
 authors = ["Jari Van Melckebeke <jarivanmelckebeke@gmail.com>"]
 maintainers = ["Jari Van Melckebeke <jarivanmelckebeke@gmail.com>"]
