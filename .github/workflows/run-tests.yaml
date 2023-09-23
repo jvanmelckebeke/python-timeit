@@ -53,10 +53,11 @@ jobs:
         run: |
           poetry install
 
+
       - name: Publish to PyPI
         run: |
           poetry config pypi-token.pypi $POETRY_PYPI_TOKEN
-          poetry publish --build
+          poetry publish --build --skip-existing
         env:
           POETRY_PYPI_TOKEN: ${{ secrets.POETRY_PYPI_TOKEN }}
 
