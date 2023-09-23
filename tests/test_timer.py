@@ -11,7 +11,7 @@ class TimerTests(unittest.TestCase):
         with Timer("Test Timer", internal_timer=internal_timer) as timer:
             time.sleep(0.1)
 
-        self.assertAlmostEqual(timer.elapsed_time, 0.1, places=1)
+        self.assertAlmostEqual(0.1, timer.elapsed_time, places=1)
 
     def test_timer_with_parent(self):
         internal_timer = InternalTimer()
@@ -23,9 +23,9 @@ class TimerTests(unittest.TestCase):
             with parent_timer("Child Timer 2") as child_timer2:
                 time.sleep(0.3)
 
-        self.assertAlmostEqual(parent_timer.elapsed_time, 0.6, places=1)
-        self.assertAlmostEqual(child_timer1.elapsed_time, 0.2, places=1)
-        self.assertAlmostEqual(child_timer2.elapsed_time, 0.3, places=1)
+        self.assertAlmostEqual(0.6, parent_timer.elapsed_time, places=1)
+        self.assertAlmostEqual(0.2, child_timer1.elapsed_time, places=1)
+        self.assertAlmostEqual(0.3, child_timer2.elapsed_time, places=1)
 
 
 if __name__ == '__main__':
