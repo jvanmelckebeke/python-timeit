@@ -4,30 +4,63 @@ from timeitpoj.utils import constants
 
 
 def reformat_units(value: float, start_unit="seconds"):
-    unit_order = ["seconds", "milliseconds", "microseconds", "nanoseconds"]
-    unit_index = unit_order.index(start_unit)
+    """
+    Reformat a time value to a more readable format.
+    :param value: The time value to reformat.
+    :param start_unit: The unit of the time value.
 
-    while value < 0.1 and unit_index < len(unit_order) - 1:
-        value *= 1000
-        unit_index += 1
+    returns: a list of tuples containing the reformatted time value and the unit.
+    """
 
-    return value, unit_order[unit_index]
+    units = ['seconds', 'milliseconds', 'microseconds', 'nanoseconds', 'minutes', 'hours']
+    unit_factors = [1, 1000, 1000000, 1000000000, 60, 3600]
+
+    # first convert to seconds
+    if start_unit != "seconds":
+        value = value / unit_factors[units.index(start_unit)]
+        start_unit = "seconds"
+
+    # check if we need to convert to minutes or hours
+    if value >= 60:
+        hours = int(value // 3600)
+        minutes = int((value % 3600) // 60)
+        seconds = value % 60
+
+        ret = []
+
+        if hours > 0:
+            ret.append((hours, "hours"))
+
+        if minutes > 0:
+            ret.append((minutes, "minutes"))
+
+        if seconds > 0:
+            ret.append((seconds, "seconds"))
+
+        return ret
+
+    nvalue = value
+    nunit = start_unit
+
+    while nvalue < 1 and nunit != "nanoseconds":
+        nvalue *= 1000
+        nunit = units[units.index(nunit) + 1]
+
+    reformatted_values = [(nvalue, nunit)]
+
+    return reformatted_values
 
 
 def time_to_str(value: float, unit: str = "seconds", time_format=constants.DURATION_FORMAT):
-    nvalue, nunit = reformat_units(value, unit)
+    reformatted = reformat_units(value, unit)
+    out = ""
 
-    if nvalue > 60 and nunit == "seconds":
-        minutes = int(nvalue // 60)
-        seconds = nvalue % 60
+    for i, (nvalue, nunit) in enumerate(reformatted):
+        if i != 0:
+            out += " "
+        out += f"{nvalue:{time_format}} {nunit}"
 
-        if seconds == 0:
-            return f"{minutes:.0f} minutes"
-
-        svalue, sunit = reformat_units(seconds, "seconds")
-        return f"{minutes} minutes {svalue:{time_format}} {sunit}"
-
-    return f"{nvalue:{time_format}} {nunit}"
+    return out
 
 
 def format_percentage(value: float, include_brackets=True):

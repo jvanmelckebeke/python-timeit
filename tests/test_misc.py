@@ -5,12 +5,12 @@ from timeitpoj.utils.misc import reformat_units, time_to_str, format_percentage,
 class MiscTestCase(unittest.TestCase):
     def test_reformat_units(self):
         # Test reformatting units
-        self.assertEqual((5.0, 'milliseconds'), reformat_units(0.005))
-        self.assertEqual((20.0, 'microseconds'), reformat_units(0.00002))
-        self.assertEqual((0.3, 'microseconds'), reformat_units(0.0000003))
+        self.assertEqual([(5.0, 'milliseconds')], reformat_units(0.005))
+        self.assertEqual([(20.0, 'microseconds')], reformat_units(0.00002))
+        self.assertEqual([(300, 'nanoseconds')], reformat_units(0.0000003))
 
         # Test start_unit parameter
-        self.assertEqual((100.0, 'milliseconds'), reformat_units(100, start_unit='milliseconds'))
+        self.assertEqual([(100.0, 'milliseconds')], reformat_units(100, start_unit='milliseconds'))
 
     def test_time_to_str(self):
         # Test time formatting
@@ -19,8 +19,14 @@ class MiscTestCase(unittest.TestCase):
         self.assertEqual('0.020 nanoseconds', time_to_str(0.00002, unit='microseconds'))
 
         # Test minute formatting
-        self.assertEqual('1 minutes 1.000 seconds', time_to_str(61))
-        self.assertEqual('2 minutes', time_to_str(120))
+        self.assertEqual('2.000 minutes', time_to_str(120))
+        self.assertEqual('1.000 minutes 1.000 seconds', time_to_str(61))
+        self.assertEqual('1.000 minutes 0.005 seconds', time_to_str(60.005))
+
+        # Test hour formatting
+        self.assertEqual('2.000 hours', time_to_str(7200))
+        self.assertEqual('1.000 hours 1.000 minutes 1.000 seconds', time_to_str(3661))
+        self.assertEqual('1.000 hours 0.005 seconds', time_to_str(3600.005))
 
     def test_format_percentage(self):
         # Test percentage formatting
