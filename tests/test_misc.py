@@ -18,6 +18,10 @@ class MiscTestCase(unittest.TestCase):
         self.assertEqual(time_to_str(0.005, unit='milliseconds'), '5.000 microseconds')
         self.assertEqual(time_to_str(0.00002, unit='microseconds'), '0.020 nanoseconds')
 
+        # Test minute formatting
+        self.assertEqual(time_to_str(61), '1 minutes 1.000 seconds')
+        self.assertEqual(time_to_str(120), '2 minutes')
+
     def test_format_percentage(self):
         # Test percentage formatting
         self.assertEqual(format_percentage(0.25), '[25.00%]')

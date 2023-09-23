@@ -50,19 +50,19 @@ class TimeIt:
         creates a new TimeIt object
         the TimeIt object is a manager for the root timer
         :param name: the name of the timer (used for reporting)
+        :param handlers: the handlers that will be used for reporting
         """
         self.internal_timer = InternalTimer()
         self.timer = None
         with self.internal_timer:
-            self.name = name
-            self.start_time = None
-            self.end_time = None
-
             if handlers is None:
                 handlers = [PrintReportHandler()]
 
+            self.name = name
             self.handlers = handlers
 
+            self.start_time = None
+            self.end_time = None
             self.active = bool(strtobool(os.getenv("TIME_IT", "true")))
 
             if not self.active:

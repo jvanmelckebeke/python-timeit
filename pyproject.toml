@@ -24,6 +24,9 @@ classifiers = [
     "Topic :: Utilities"
 ]
 
+[tool.poetry.scripts]
+devtest = { reference = "timeitpoj.tests:test_timer", extras = ["dev"], type = "console" }
+
 [tool.poetry.dependencies]
 python = "^3.8"
 

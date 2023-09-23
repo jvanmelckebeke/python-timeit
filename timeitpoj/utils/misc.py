@@ -16,6 +16,17 @@ def reformat_units(value: float, start_unit="seconds"):
 
 def time_to_str(value: float, unit: str = "seconds", time_format=constants.DURATION_FORMAT):
     nvalue, nunit = reformat_units(value, unit)
+
+    if nvalue > 60 and nunit == "seconds":
+        minutes = int(nvalue // 60)
+        seconds = nvalue % 60
+
+        if seconds == 0:
+            return f"{minutes:.0f} minutes"
+
+        svalue, sunit = reformat_units(seconds, "seconds")
+        return f"{minutes} minutes {svalue:{time_format}} {sunit}"
+
     return f"{nvalue:{time_format}} {nunit}"
 
 
