@@ -1,4 +1,4 @@
-name: Build and Test
+name: Build, Test and Publish
 
 on:
   push:
@@ -33,5 +33,29 @@ jobs:
       - name: Run tests
         run: |
           poetry run python -m unittest discover tests
-          
+
+  publish:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+
+      - name: Set up Poetry
+        uses: abatilo/actions-poetry@v2
+
+      - name: Install dependencies
+        run: |
+          poetry install
+
+      - name: Publish to PyPI
+        run: |
+          poetry publish --build
+        env:
+          POETRY_PYPI_TOKEN: ${{ secrets.POETRY_PYPI_TOKEN }}
 
