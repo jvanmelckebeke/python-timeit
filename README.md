@@ -3,6 +3,7 @@
 yet another random library for measuring python performance
 
 [![Build and Test](https://github.com/jvanmelckebeke/timeitpoj/actions/workflows/run-tests.yaml/badge.svg)](https://github.com/jvanmelckebeke/timeitpoj/actions/workflows/run-tests.yaml)
+[![PyPI version](https://badge.fury.io/py/timeitpoj.svg)](https://badge.fury.io/py/timeitpoj)
 
 ## Usage in production
 
