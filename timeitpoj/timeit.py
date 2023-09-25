@@ -126,6 +126,10 @@ class TimeIt:
         the elapsed time of the root timer
         :return:
         """
+
+        if self.end_time is None:
+            return None
+
         return self.end_time - self.start_time if self.end_time is not None else None
 
     @classmethod

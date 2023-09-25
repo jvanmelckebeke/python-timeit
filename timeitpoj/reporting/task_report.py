@@ -31,6 +31,10 @@ class TaskReport:
         return reformat_units(self.total_duration)
 
     @property
+    def formatted_padding(self):
+        return len(" ".join(f"{value} {unit}" for value, unit in self.formatted_duration))
+
+    @property
     def formatted_avg_duration(self):
         return time_to_str(self.avg_duration)
 
@@ -54,7 +58,7 @@ class TaskReport:
             print(self)
 
         if self.children:
-            child_unit_padding = max(len(child.formatted_duration[1]) for child in self.children)
+            child_unit_padding = max(child.formatted_padding for child in self.children)
             child_avg_duration_padding = max(len(child.formatted_avg_duration) for child in self.children)
 
             for i, child in enumerate(self.children):
@@ -66,10 +70,12 @@ class TaskReport:
         if self.internal_time is not None:
             internal_time = self.internal_time
             internal_time_ratio = internal_time / self.total_duration
-            internal_time, unit = reformat_units(internal_time, start_unit="seconds")
+            formatted = reformat_units(internal_time, start_unit="seconds")
+
+            formatted_str = " ".join(f"{value:{constants.DURATION_FORMAT}} {unit}" for value, unit in formatted)
 
             print(" " * spacing + f"└── {format_percentage(internal_time_ratio)} "
-                                  f"internal time: {internal_time:{constants.DURATION_FORMAT}} {unit}")
+                                  f"internal time: {formatted_str}")
 
     @classmethod
     def from_dict(cls, task_report_dict: dict, padding_name=0):
@@ -93,10 +99,14 @@ class TaskReport:
         count_str = f"{self.count} times" if self.count > 1 else ""
         avg_duration_str = f"avg {time_to_str(self.avg_duration):{self.avg_duration_padding}}" if self.count > 1 else ""
 
+        formatted_duration = " ".join(
+            f"{value:{constants.DURATION_FORMAT}} {unit:{self.unit_padding}}" for value, unit in self.formatted_duration
+        )
+
         to_print = [
             constants.PREFIX,
             f"{ratio_str}{name_str}",
-            f"{self.formatted_duration[0]:{constants.DURATION_FORMAT}} {self.formatted_duration[1]:{self.unit_padding}}",
+            formatted_duration,
             f"{count_str}",
             f"{avg_duration_str}"
         ]
