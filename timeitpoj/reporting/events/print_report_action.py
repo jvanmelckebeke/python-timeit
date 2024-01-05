@@ -54,7 +54,8 @@ class PrintReportHandler(TimeitEvent):
                     "ratio": 0,
                     "avg": timeit.elapsed_time,
                     "subtasks": _report,
-                }
+                },
+                log_func=self.log,
             )
             task_report.internal_time = timeit.internal_timer.internal_time
             task_report.print(spacing=spacing, skip_first=True)

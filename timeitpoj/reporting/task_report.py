@@ -16,8 +16,11 @@ class TaskReport:
                  padding_name: int,
                  log_func=None):
         if log_func is None:
-            log_func = print
-            self.log = log_func
+            def pprint(*args, **kwargs):
+                print("TIMEITPOJ", *args, **kwargs)
+
+            log_func = pprint
+        self.log = log_func
 
         self.name = name
         self.times = times if isinstance(times, list) else [times]
@@ -89,11 +92,11 @@ class TaskReport:
                                      f"internal time: {formatted_str}")
 
     @classmethod
-    def from_dict(cls, task_report_dict: dict, padding_name=0):
+    def from_dict(cls, task_report_dict: dict, padding_name=0, log_func=None):
         children = []
         if "subtasks" in task_report_dict:
             for child in task_report_dict["subtasks"].values():
-                children.append(cls.from_dict(child, padding_name=len(child["name"])))
+                children.append(cls.from_dict(child, padding_name=len(child["name"]), log_func=log_func))
 
         return cls(
             name=task_report_dict["name"],
@@ -101,7 +104,8 @@ class TaskReport:
             count=task_report_dict["count"],
             ratio=task_report_dict["ratio"],
             children=children,
-            padding_name=padding_name
+            padding_name=padding_name,
+            log_func=log_func
         )
 
     def __str__(self):
