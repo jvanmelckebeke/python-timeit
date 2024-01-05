@@ -13,6 +13,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, see <https://www.gnu.org/licenses/>.
 #
+import logging
 import time
 from distutils.util import strtobool
 import os
@@ -45,18 +46,25 @@ class TimeIt:
 
     """
 
-    def __init__(self, name: str, handlers: List[TimeitEvent] = None):
+    def __init__(self, name: str,
+                 handlers: List[TimeitEvent] = None,
+                 log_func=None):
         """
         creates a new TimeIt object
         the TimeIt object is a manager for the root timer
         :param name: the name of the timer (used for reporting)
         :param handlers: the handlers that will be used for reporting
         """
+        if log_func is None:
+            log_func = print
+
         self.internal_timer = InternalTimer()
         self.timer = None
+        self.log = log_func
+
         with self.internal_timer:
             if handlers is None:
-                handlers = [PrintReportHandler()]
+                handlers = [PrintReportHandler(log_func=self.log)]
 
             self.name = name
             self.handlers = handlers
@@ -66,7 +74,7 @@ class TimeIt:
             self.active = bool(strtobool(os.getenv("TIME_IT", "true")))
 
             if not self.active:
-                print("TimeIt is disabled, no reports will be printed")
+                self.log("TimeIt is disabled, no reports will be printed")
 
     def handle_start(self):
         """
@@ -133,14 +141,14 @@ class TimeIt:
         return self.end_time - self.start_time if self.end_time is not None else None
 
     @classmethod
-    def as_decorator(cls, name=None, include=False):
+    def as_decorator(cls, name=None, include=False, log_func=None):
         def decorator(func):
             @wraps(func)
             def wrapper(*args, **kwargs):
                 nonlocal name
                 if name is None:
                     name = func.__name__
-                with cls(name) as timer:
+                with cls(name, log_func=log_func) as timer:
                     if include:
                         return func(*args, timer=timer, **kwargs)
                     else:

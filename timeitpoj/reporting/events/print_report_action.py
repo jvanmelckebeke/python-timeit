@@ -6,12 +6,15 @@ from timeitpoj.utils.misc import time_to_str
 
 
 class PrintReportHandler(TimeitEvent):
-    def __init__(self):
+    def __init__(self, log_func=None):
+        if log_func is None:
+            log_func = print
+        self.log = log_func
         super().__init__("print_report")
 
     def __print_timeit_report(self, timeit: "TimeIt"):
         def print_report_title_line():
-            print(f"================= [{timeit.name}] TIMEIT REPORT =================")
+            self.log(f"================= [{timeit.name}] TIMEIT REPORT =================")
 
         def generate_task_report_dict(tasks):
 
@@ -61,12 +64,12 @@ class PrintReportHandler(TimeitEvent):
         generate_report_start = time.time()
 
         if len(timeit.timer.task_timers) < 1:
-            print(f"[TIMEIT] {timeit.name} took {time_to_str(elapsed_time)}")
+            self.log(f"[TIMEIT] {timeit.name} took {time_to_str(elapsed_time)}")
             return
 
         print_report_title_line()
 
-        print(f"[TIMEIT] {timeit.name} took {time_to_str(elapsed_time)}")
+        self.log(f"[TIMEIT] {timeit.name} took {time_to_str(elapsed_time)}")
 
         report = generate_task_report_dict(timeit.timer.task_timers)
 
@@ -82,14 +85,14 @@ class PrintReportHandler(TimeitEvent):
 
         coverage = time_accounted_for / total_time
         time_unaccounted_for = total_time - time_accounted_for
-        print(
+        self.log(
             f"[{coverage:.2%}% COVERAGE] time accounted for: {time_to_str(time_accounted_for)}, "
             f"time unaccounted for: {time_to_str(time_unaccounted_for)}")
 
         generate_report_end = time.time()
         generate_report_duration = generate_report_end - generate_report_start
 
-        print(f"[TIMEIT] report generation took {time_to_str(generate_report_duration)}")
+        self.log(f"[TIMEIT] report generation took {time_to_str(generate_report_duration)}")
 
         print_report_title_line()
 

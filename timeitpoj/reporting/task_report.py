@@ -1,3 +1,4 @@
+import logging
 from typing import Union, List
 from timeitpoj.utils import constants
 from timeitpoj.utils.misc import reformat_units, format_percentage, time_to_str
@@ -6,8 +7,18 @@ PADDING_SECONDS = len("seconds")
 
 
 class TaskReport:
-    def __init__(self, name: str, times: Union[List[float], float], count: int, ratio: float,
-                 children: List["TaskReport"], padding_name: int):
+    def __init__(self,
+                 name: str,
+                 times: Union[List[float], float],
+                 count: int,
+                 ratio: float,
+                 children: List["TaskReport"],
+                 padding_name: int,
+                 log_func=None):
+        if log_func is None:
+            log_func = print
+            self.log = log_func
+
         self.name = name
         self.times = times if isinstance(times, list) else [times]
         self.count = count
@@ -42,7 +53,7 @@ class TaskReport:
         prefix = "│" if not last_child else " "
         connector = "└──" if last_child else "├──"
 
-        print(" " * spacing + f"{connector} {child}")
+        self.log(" " * spacing + f"{connector} {child}")
 
         if child.children:
             child.print(
@@ -55,7 +66,7 @@ class TaskReport:
         self.avg_duration_padding = avg_duration_padding
 
         if not skip_first:
-            print(self)
+            self.log(self)
 
         if self.children:
             child_unit_padding = max(child.formatted_padding for child in self.children)
@@ -74,8 +85,8 @@ class TaskReport:
 
             formatted_str = " ".join(f"{value:{constants.DURATION_FORMAT}} {unit}" for value, unit in formatted)
 
-            print(" " * spacing + f"└── {format_percentage(internal_time_ratio)} "
-                                  f"internal time: {formatted_str}")
+            self.log(" " * spacing + f"└── {format_percentage(internal_time_ratio)} "
+                                     f"internal time: {formatted_str}")
 
     @classmethod
     def from_dict(cls, task_report_dict: dict, padding_name=0):
